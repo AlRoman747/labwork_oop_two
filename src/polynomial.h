@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 
 class Polynomial
@@ -17,5 +18,4 @@ public:
     double definite_integral(double a, double b) const;
     void print(std::ostream &out) const;
     ~Polynomial();
-    int return_degree();
 };

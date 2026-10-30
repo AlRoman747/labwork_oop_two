@@ -43,15 +43,38 @@ Polynomial &Polynomial::operator=(Polynomial other)
 
 void Polynomial::add(const Polynomial &other)
 {
-    degree_ = std::max(degree_, other.degree_);
-    for (size_t i = 0; i <= degree_; ++i)
+    if (!other.coeffs_ || other.degree_ == -1)
+        return;
+    int new_degree = std::max(degree_, other.degree_);
+    double *temp = new double[new_degree + 1]();
+    if (coeffs_)
     {
-        coeffs_[i] = coeffs_[i] + other.coeffs_[i];
+        for (int i = 0; i <= degree_; ++i)
+        {
+            temp[i] += coeffs_[i];
+        }
     }
+
+    for (int i = 0; i <= other.degree_; ++i)
+    {
+        temp[i] += other.coeffs_[i];
+    }
+    delete[] coeffs_;
+    coeffs_ = temp;
+    degree_ = new_degree;
 }
 
 void Polynomial::mul(const Polynomial &other)
 {
+    if (!coeffs_ || degree_ == -1)
+        return;
+    if (!other.coeffs_ || other.degree_ == -1)
+    {
+        degree_ = -1;
+        delete[] coeffs_;
+        coeffs_ = nullptr;
+        return;
+    }
     int old_degree = degree_;
     degree_ = degree_ + other.degree_;
     double *new_coeffs = new double[degree_ + 1]();
@@ -69,16 +92,23 @@ void Polynomial::mul(const Polynomial &other)
 
 double Polynomial::evaluate(double x) const
 {
-    double res = coeffs_[0];
-    for (size_t i = 1; i <= degree_; ++i)
+    if (!coeffs_ || degree_ == -1)
+        return 0;
     {
-        res += coeffs_[i] * pow(x, i);
+        double res = coeffs_[0];
+        for (size_t i = 1; i <= degree_; ++i)
+        {
+            res += coeffs_[i] * pow(x, i);
+        }
+        return res;
     }
-    return res;
+    return 0;
 }
 
 double Polynomial::definite_integral(double a, double b) const
 {
+    if (!coeffs_ || degree_ == -1)
+        return 0;
     double res = 0;
     for (size_t i = 0; i <= degree_; ++i)
     {
@@ -89,6 +119,8 @@ double Polynomial::definite_integral(double a, double b) const
 }
 void Polynomial::print(std::ostream &out) const
 {
+    if (!coeffs_ || degree_ == -1)
+        return;
     for (size_t i = 0; i <= degree_; ++i)
     {
         if (i > 0 && coeffs_[i] >= 0)
@@ -97,9 +129,17 @@ void Polynomial::print(std::ostream &out) const
         }
         else if (coeffs_[i] < 0)
         {
-            out << " ";
+            out << " - ";
         }
-        out << coeffs_[i];
+        if (i != 0 && std::abs(coeffs_[i]))
+            std::cout << "";
+        if (i == 0)
+        {
+            out << std::abs(coeffs_[i]);
+            continue;
+        }
+        if (i != 0 && coeffs_[i] != 1)
+            out << std::abs(coeffs_[i]);
         if (i == 1)
         {
             out << "x";
@@ -115,9 +155,4 @@ void Polynomial::print(std::ostream &out) const
 Polynomial::~Polynomial()
 {
     delete[] coeffs_;
-}
-
-int Polynomial::return_degree()
-{
-    return degree_;
 }
